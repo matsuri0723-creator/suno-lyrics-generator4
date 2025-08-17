@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUNO歌詞・スタイル生成ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .ai-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ai-option {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ai-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .google-login {
+            background: #4285f4;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .google-login:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .mood-option {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .mood-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .mood-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .reference-section {
+            background: #fff8e1;
+            border: 2px solid #ffeb3b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .reference-section h4 {
+            color: #f57f17;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .reference-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-slider {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+            margin-bottom: 15px;
+        }
+
+        .image-upload-area:hover {
+            border-color: #5a67d8;
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .image-upload-area.dragover {
+            border-color: #4c51bf;
+            background: #e6fffa;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-placeholder p {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .upload-placeholder small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .image-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .image-preview {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-remove:hover {
+            background: rgba(255, 0, 0, 1);
+        }
+
+        .image-analysis {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .image-analysis h4 {
+            color: #0c5460;
+            margin-bottom: 8px;
+        }
+
+        .image-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .image-tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .result-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .lyrics-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border-left: 4px solid #667eea;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .results {
+                grid-template-columns: 1fr;
+            }
+            
+            .mood-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .ai-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mood-option {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+
+            .reference-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 SUNO歌詞・スタイル生成ツール</h1>
+            <p>タイトルとジャンルを入れるだけで、AIが歌詞とSUNOスタイルを生成します</p>
+        </div>
+
+        <div class="login-section">
+            <h3>AI選択とログイン</h3>
+            <div class="ai-selector">
+                <div class="ai-option selected" data-ai="openai">OpenAI (GPT-4)</div>
+                <div class="ai-option" data-ai="claude">Claude (Anthropic)</div>
+            </div>
+            <button class="google-login" onclick="handleGoogleLogin()">🔐 Googleでログイン</button>
+            <div id="login-status" class="status" style="display: none;"></div>
+        </div>
+
+        <div class="form-section">
+            <div>
+                <div class="form-group">
+                    <label for="title">楽曲タイトル</label>
+                    <input type="text" id="title" placeholder="例：夏の思い出">
+                </div>
+
+                <div class="form-group">
+                    <label for="genre">ジャンル</label>
+                    <select id="genre">
+                        <option value="">ジャンルを選択</option>
+                        <option value="j-pop">J-POP</option>
+                        <option value="rock">ロック</option>
+                        <option value="ballad">バラード</option>
+                        <option value="electronic">エレクトロニック</option>
+                        <option value="folk">フォーク</option>
+                        <option value="jazz">ジャズ</option>
+                        <option value="classical">クラシック</option>
+                        <option value="hip-hop">ヒップホップ</option>
+                        <option value="reggae">レゲエ</option>
+                        <option value="country">カントリー</option>
+                        <option value="blues">ブルース</option>
+                        <option value="funk">ファンク</option>
+                    </select>
+                </div>
+
+                <div class="reference-section">
+                    <h4>🎤 参考アーティスト・楽曲（任意）</h4>
+                    <div class="reference-inputs">
+                        <input type="text" id="reference-artist" placeholder="参考アーティスト名">
+                        <input type="text" id="reference-song" placeholder="参考楽曲名">
+                    </div>
+                    <small style="color: #f57f17; display: block; margin-top: 10px; text-align: center;">
+                        ※歌詞生成の参考にしますが、スタイルタグには含めません
+                    </small>
+                </div>
+
+                <div class="form-group" style="display: none;">
+                    <label>雰囲気・イメージ（複数選択可）</label>
+                    <div class="mood-grid">
+                        <div class="mood-option" data-mood="happy">明るい</div>
+                        <div class="mood-option" data-mood="sad">悲しい</div>
+                        <div class="mood-option" data-mood="energetic">エネルギッシュ</div>
+                        <div class="mood-option" data-mood="calm">穏やか</div>
+                        <div class="mood-option" data-mood="romantic">ロマンチック</div>
+                        <div class="mood-option" data-mood="nostalgic">ノスタルジック</div>
+                        <div class="mood-option" data-mood="mysterious">神秘的</div>
+                        <div class="mood-option" data-mood="powerful">力強い</div>
+                        <div class="mood-option" data-mood="gentle">優しい</div>
+                        <div class="mood-option" data-mood="dark">ダーク</div>
+                        <div class="mood-option" data-mood="dreamy">夢幻的</div>
+                        <div class="mood-option" data-mood="epic">壮大</div>
+                        <div class="mood-option" data-mood="cute">可愛い</div>
+                        <div class="mood-option" data-mood="cool">クール</div>
+                        <div class="mood-option" data-mood="emotional">感情的</div>
+                        <div class="mood-option" data-mood="playful">遊び心</div>
+                        <div class="mood-option" data-mood="serious">真面目</div>
+                        <div class="mood-option" data-mood="hopeful">希望的</div>
+                        <div class="mood-option" data-mood="melancholic">憂鬱</div>
+                        <div class="mood-option" data-mood="triumphant">勝利的</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="form-group">
+                    <label for="instruments">こだわり・入れたい楽器・要素</label>
+                    <textarea id="instruments" rows="4" placeholder="例：アコースティックギター、ピアノソロ、オーケストラ編成、シンセサイザー、コーラス、ハーモニー、ラップパート、ギターソロなど"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="image-upload">参考画像をアップロード</label>
+                    <div class="image-upload-area" onclick="document.getElementById('image-input').click()">
+                        <input type="file" id="image-input" accept="image/*" multiple style="display: none;">
+                        <div class="upload-placeholder">
+                            <div class="upload-icon">📷</div>
+                            <p>画像をクリックまたはドラッグ&ドロップ</p>
+                            <small>雰囲気やイメージの参考になる画像を追加できます</small>
+                        </div>
+                    </div>
+                    <div id="image-preview" class="image-preview-container"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">楽曲の長さ：<span id="duration-display">3分</span></label>
+                    <div class="time-slider">
+                        <input type="range" id="duration" class="slider" min="1" max="10" value="3" step="0.5">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="additional">追加の要望</label>
+                    <textarea id="additional" rows="3" placeholder="その他のリクエストがあれば記入してください"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateLyrics()">🎼 歌詞とスタイルを生成</button>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>AIが歌詞とスタイルを生成中です...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <div class="result-box">
+                <h3>📝 生成された歌詞</h3>
+                <h4>漢字版</h4>
+                <div id="lyrics-kanji" class="lyrics-box"></div>
+                <button class="copy-btn" onclick="copyToClipboard('lyrics-kanji')">漢字版をコピー</button>
+                
+                <h4>ひらがな版</h4>
+                <div id="lyrics-hiragana" class="lyrics-box"></div>
+                <button class="copy-btn" onclick="copyToClipboard('lyrics-hiragana')">ひらがな版をコピー</button>
+            </div>
+
+            <div class="result-box">
+                <h3>🎨 SUNOスタイルタグ（英語）</h3>
+                <div id="style-tags" class="lyrics-box"></div>
+                <button class="copy-btn" onclick="copyToClipboard('style-tags')">スタイルタグをコピー</button>
+                
+                <h3>📊 生成情報</h3>
+                <div id="generation-info" class="lyrics-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAI = 'openai';
+        let selectedMoods = [];
+        let isLoggedIn = false;
+        let uploadedImages = [];
+
+        // 画像アップロード機能
+        const imageInput = document.getElementById('image-input');
+        const uploadArea = document.querySelector('.image-upload-area');
+        const previewContainer = document.getElementById('image-preview');
+
+        // ファイル選択
+        imageInput.addEventListener('change', handleFileSelect);
+
+        // ドラッグ&ドロップ
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            processFiles(files);
+        });
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            processFiles(files);
+        }
+
+        function processFiles(files) {
+            files.forEach(file => {
+                if (uploadedImages.length >= 5) {
+                    alert('画像は最大5枚までアップロードできます');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageData = {
+                        id: Date.now() + Math.random(),
+                        file: file,
+                        dataUrl: e.target.result,
+                        analysis: analyzeImage(file.name)
+                    };
+                    uploadedImages.push(imageData);
+                    displayImagePreview(imageData);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function displayImagePreview(imageData) {
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'image-preview';
+            previewDiv.innerHTML = `
+                <img src="${imageData.dataUrl}" alt="Preview">
+                <button class="image-remove" onclick="removeImage(${imageData.id})">×</button>
+            `;
+            previewContainer.appendChild(previewDiv);
+
+            if (uploadedImages.length === 1) {
+                displayImageAnalysis();
+            }
+        }
+
+        function removeImage(id) {
+            uploadedImages = uploadedImages.filter(img => img.id !== id);
+            updateImagePreview();
+            if (uploadedImages.length === 0) {
+                document.getElementById('image-analysis')?.remove();
+            }
+        }
+
+        function updateImagePreview() {
+            previewContainer.innerHTML = '';
+            uploadedImages.forEach(imageData => {
+                displayImagePreview(imageData);
+            });
+        }
+
+        function analyzeImage(filename) {
+            const keywords = filename.toLowerCase();
+            const analysis = {
+                mood: [],
+                style: [],
+                colors: [],
+                elements: []
+            };
+
+            if (keywords.includes('sunset') || keywords.includes('夕日') || keywords.includes('夕焼け')) {
+                analysis.mood.push('romantic', 'nostalgic', 'warm');
+                analysis.colors.push('orange', 'warm');
+            }
+            if (keywords.includes('night') || keywords.includes('夜') || keywords.includes('moon')) {
+                analysis.mood.push('mysterious', 'calm', 'dreamy');
+                analysis.colors.push('dark', 'blue');
+            }
+            if (keywords.includes('flower') || keywords.includes('花') || keywords.includes('spring')) {
+                analysis.mood.push('gentle', 'romantic', 'hopeful');
+                analysis.style.push('natural', 'soft');
+            }
+            if (keywords.includes('city') || keywords.includes('街') || keywords.includes('urban')) {
+                analysis.mood.push('energetic', 'modern', 'cool');
+                analysis.style.push('urban', 'dynamic');
+            }
+            if (keywords.includes('ocean') || keywords.includes('sea') || keywords.includes('海')) {
+                analysis.mood.push('calm', 'epic', 'emotional');
+                analysis.colors.push('blue', 'refreshing');
+            }
+
+            return analysis;
+        }
+
+        function displayImageAnalysis() {
+            const existingAnalysis = document.getElementById('image-analysis');
+            if (existingAnalysis) existingAnalysis.remove();
+
+            const analysisDiv = document.createElement('div');
+            analysisDiv.id = 'image-analysis';
+            analysisDiv.className = 'image-analysis';
+            
+            const combinedAnalysis = combineImageAnalyses();
+            
+            analysisDiv.innerHTML = `
+                <h4>🖼️ 画像から分析された要素</h4>
+                <p>アップロードされた画像から以下の要素を検出しました。これらは自動的に歌詞生成に反映されます。</p>
+                <div class="image-tags">
+                    ${combinedAnalysis.mood.map(mood => `<span class="image-tag">${mood}</span>`).join('')}
+                    ${combinedAnalysis.style.map(style => `<span class="image-tag">${style}</span>`).join('')}
+                    ${combinedAnalysis.colors.map(color => `<span class="image-tag">${color}</span>`).join('')}
+                </div>
+            `;
+
+            uploadArea.parentNode.insertBefore(analysisDiv, uploadArea.nextSibling);
+        }
+
+        function combineImageAnalyses() {
+            const combined = { mood: new Set(), style: new Set(), colors: new Set() };
+            
+            uploadedImages.forEach(img => {
+                img.analysis.mood.forEach(m => combined.mood.add(m));
+                img.analysis.style.forEach(s => combined.style.add(s));
+                img.analysis.colors.forEach(c => combined.colors.add(c));
+            });
+
+            return {
+                mood: Array.from(combined.mood),
+                style: Array.from(combined.style),
+                colors: Array.from(combined.colors)
+            };
+        }
+
+        // AI選択
+        document.querySelectorAll('.ai-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.ai-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedAI = this.dataset.ai;
+            });
+        });
+
+        // 雰囲気選択（無効化）
+        document.querySelectorAll('.mood-option').forEach(option => {
+            // イベントリスナーを削除または無効化
+            option.removeEventListener('click', function() {
+                this.classList.toggle('selected');
+                const mood = this.dataset.mood;
+                if (selectedMoods.includes(mood)) {
+                    selectedMoods = selectedMoods.filter(m => m !== mood);
+                } else {
+                    selectedMoods.push(mood);
+                }
+            });
+        });
+
+        // 時間スライダー
+        document.getElementById('duration').addEventListener('input', function() {
+            document.getElementById('duration-display').textContent = this.value + '分';
+        });
+
+        // Googleログイン（デモ実装）
+        function handleGoogleLogin() {
+            const statusDiv = document.getElementById('login-status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.textContent = 'ログイン処理中...';
+
+            setTimeout(() => {
+                isLoggedIn = true;
+                statusDiv.className = 'status success';
+                statusDiv.textContent = `✅ ${selectedAI.toUpperCase()}にログインしました`;
+            }, 1500);
+        }
+
+        // 歌詞生成
+        async function generateLyrics() {
+            if (!isLoggedIn) {
+                alert('先にGoogleでログインしてください');
+                return;
+            }
+
+            const title = document.getElementById('title').value;
+            const genre = document.getElementById('genre').value;
+            const instruments = document.getElementById('instruments').value;
+            const duration = document.getElementById('duration').value;
+            const additional = document.getElementById('additional').value;
+            const referenceArtist = document.getElementById('reference-artist').value;
+            const referenceSong = document.getElementById('reference-song').value;
+
+            if (!title || !genre) {
+                alert('タイトルとジャンルは必須です');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.querySelector('.generate-btn').disabled = true;
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                const imageAnalysis = uploadedImages.length > 0 ? combineImageAnalyses() : null;
+                const generatedLyrics = generateMockLyrics(title, genre, selectedMoods, duration, imageAnalysis, instruments, referenceArtist, referenceSong);
+                const styleTag = generateStyleTag(genre, selectedMoods, instruments, imageAnalysis, referenceArtist, referenceSong);
+
+                displayResults(generatedLyrics, styleTag);
+            } catch (error) {
+                alert('生成中にエラーが発生しました: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.generate-btn').disabled = false;
+            }
+        }
+
+        // モック歌詞生成（全要素反映）
+        function generateMockLyrics(title, genre, moods, duration, imageAnalysis, instruments, referenceArtist, referenceSong) {
+            let lyricsTemplate = `[Verse 1]
+${title}が心に響いて
+風のように過ぎ去った日々
+思い出は色褪せることなく
+今でも胸の奥で光ってる
+
+[Chorus]
+あの夏の空の下で
+君と過ごした時間が
+永遠に続くような気がした
+${title}、忘れはしない
+
+[Verse 2]
+街角で聞こえる音楽が
+あの頃を思い出させる
+変わらない想いを胸に
+今日もまた歩いていこう
+
+[Chorus]
+あの夏の空の下で
+君と過ごした時間が
+永遠に続くような気がした
+${title}、忘れはしない
+
+[Bridge]
+時が流れても
+心の中に生きてる
+大切な記憶たち
+
+[Outro]
+${title}よ、ありがとう
+美しい思い出をくれて`;
+
+            // 雰囲気に基づく歌詞調整
+            if (moods.includes('sad') || moods.includes('melancholic')) {
+                lyricsTemplate = lyricsTemplate.replace('光ってる', '涙に滲んでる')
+                    .replace('美しい思い出', '切ない思い出')
+                    .replace('ありがとう', 'さよなら');
+            }
+            
+            if (moods.includes('energetic') || moods.includes('powerful')) {
+                lyricsTemplate = lyricsTemplate.replace('風のように', '稲妻のように')
+                    .replace('穏やかに', '力強く')
+                    .replace('歩いていこう', '駆け抜けていこう');
+            }
+
+            if (moods.includes('romantic')) {
+                lyricsTemplate = lyricsTemplate.replace('友達', '恋人')
+                    .replace('思い出', '愛の記憶')
+                    .replace('心に', '愛しい心に');
+            }
+
+            if (moods.includes('mysterious') || moods.includes('dark')) {
+                lyricsTemplate = lyricsTemplate.replace('明るい', '神秘的な')
+                    .replace('光ってる', '闇に隠れてる')
+                    .replace('夏の空', '月夜の空');
+            }
+
+            // 楽器・要素に基づく調整
+            if (instruments.includes('ピアノ') || instruments.includes('piano')) {
+                lyricsTemplate = lyricsTemplate.replace('音楽が', 'ピアノの音色が');
+            }
+            if (instruments.includes('ギター') || instruments.includes('guitar')) {
+                lyricsTemplate = lyricsTemplate.replace('響いて', 'ギターと共に響いて');
+            }
+            if (instruments.includes('オーケストラ')) {
+                lyricsTemplate = lyricsTemplate.replace('美しい', '壮大で美しい');
+            }
+            if (instruments.includes('コーラス') || instruments.includes('ハーモニー')) {
+                lyricsTemplate = lyricsTemplate.replace('[Chorus]', '[Chorus]\n（みんなで歌おう）');
+            }
+
+            // 画像分析結果に基づく調整
+            if (imageAnalysis) {
+                if (imageAnalysis.mood.includes('romantic')) {
+                    lyricsTemplate = lyricsTemplate.replace('夏の空', '夕焼け空').replace('光ってる', '優しく輝いてる');
+                }
+                if (imageAnalysis.mood.includes('mysterious')) {
+                    lyricsTemplate = lyricsTemplate.replace('光ってる', '神秘的に光ってる');
+                }
+                if (imageAnalysis.colors.includes('orange')) {
+                    lyricsTemplate = lyricsTemplate.replace('空', 'オレンジ色の空');
+                }
+                if (imageAnalysis.style.includes('urban')) {
+                    lyricsTemplate = lyricsTemplate.replace('風のように', 'ネオンの光のように');
+                }
+                if (imageAnalysis.colors.includes('blue')) {
+                    lyricsTemplate = lyricsTemplate.replace('空', '青い空');
+                }
+            }
+
+            // 参考アーティスト・楽曲の影響（歌詞スタイルに反映、名前は含めない）
+            if (referenceArtist || referenceSong) {
+                if (referenceArtist.toLowerCase().includes('ballad') || referenceSong.toLowerCase().includes('ballad')) {
+                    lyricsTemplate = lyricsTemplate.replace('歩いていこう', 'そっと歩いていこう');
+                }
+                // より複雑なスタイル分析も可能（実際のAIではより高度な分析）
+            }
+
+            // 完全ひらがな版の作成（すべての漢字をひらがなに変換）
+            const kanjiToHiragana = {
+                '心': 'こころ', '響': 'ひび', '風': 'かぜ', '過': 'す', '去': 'さ', '日々': 'ひび',
+                '思': 'おも', '出': 'で', '色': 'いろ', '褪': 'あ', '今': 'いま', '胸': 'むね',
+                '奥': 'おく', '光': 'ひか', '夏': 'なつ', '空': 'そら', '下': 'した', '君': 'きみ',
+                '過': 'す', '時間': 'じかん', '永遠': 'えいえん', '続': 'つづ', '気': 'き',
+                '忘': 'わす', '街': 'まち', '角': 'かど', '聞': 'き', '音': 'おと', '楽': 'がく',
+                '頃': 'ころ', '思': 'おも', '変': 'か', '想': 'おも', '歩': 'ある', '時': 'とき',
+                '流': 'なが', '中': 'なか', '生': 'い', '大': 'おお', '切': 'せつ', '記': 'き',
+                '憶': 'おく', '美': 'うつく', '涙': 'なみだ', '滲': 'にじ', '切': 'せつ',
+                '稲': 'いな', '妻': 'づま', '穏': 'おだ', '力': 'ちから', '強': 'づよ', '駆': 'か',
+                '抜': 'ぬ', '友': 'とも', '達': 'だち', '恋': 'こい', '人': 'ひと', '愛': 'あい',
+                '愛': 'いと', '明': 'あか', '神': 'しん', '秘': 'ひ', '的': 'てき', '闇': 'やみ',
+                '隠': 'かく', '月': 'つき', '夜': 'よる', '音': 'おと', '色': 'いろ', '共': 'とも',
+                '壮': 'そう', '大': 'だい', '歌': 'うた', '優': 'やさ', '輝': 'かがや', '青': 'あお',
+                '最': 'さい', '高': 'こう', '新': 'あたら'
+            };
+
+            let hiraganaLyrics = lyricsTemplate;
+            
+            // より包括的な漢字→ひらがな変換
+            Object.keys(kanjiToHiragana).forEach(kanji => {
+                const regex = new RegExp(kanji, 'g');
+                hiraganaLyrics = hiraganaLyrics.replace(regex, kanjiToHiragana[kanji]);
+            });
+
+            // 残りの一般的な漢字も変換
+            hiraganaLyrics = hiraganaLyrics
+                .replace(/何/g, 'なに')
+                .replace(/誰/g, 'だれ')
+                .replace(/見/g, 'み')
+                .replace(/言/g, 'い')
+                .replace(/来/g, 'き')
+                .replace(/行/g, 'い')
+                .replace(/知/g, 'し')
+                .replace(/分/g, 'わ')
+                .replace(/本/g, 'ほん')
+                .replace(/人/g, 'ひと')
+                .replace(/手/g, 'て')
+                .replace(/目/g, 'め')
+                .replace(/口/g, 'くち')
+                .replace(/耳/g, 'みみ')
+                .replace(/足/g, 'あし')
+                .replace(/頭/g, 'あたま')
+                .replace(/顔/g, 'かお')
+                .replace(/声/g, 'こえ')
+                .replace(/体/g, 'からだ')
+                .replace(/毎/g, 'まい')
+                .replace(/方/g, 'かた')
+                .replace(/事/g, 'こと')
+                .replace(/物/g, 'もの')
+                .replace(/所/g, 'ところ')
+                .replace(/場/g, 'ば')
+                .replace(/道/g, 'みち')
+                .replace(/家/g, 'いえ')
+                .replace(/学/g, 'がく')
+                .replace(/校/g, 'こう')
+                .replace(/先/g, 'さき')
+                .replace(/生/g, 'せい');
+
+            return { kanji: lyricsTemplate, hiragana: hiraganaLyrics };
+        }
+
+        // スタイルタグ生成（英語翻訳）
+        function generateStyleTag(genre, moods, instruments, imageAnalysis, referenceArtist, referenceSong) {
+            let styleElements = [];
+
+            // ジャンルの英語変換
+            const genreMap = {
+                'j-pop': 'J-Pop',
+                'rock': 'Rock',
+                'ballad': 'Ballad',
+                'electronic': 'Electronic',
+                'folk': 'Folk',
+                'jazz': 'Jazz',
+                'classical': 'Classical',
+                'hip-hop': 'Hip-Hop',
+                'reggae': 'Reggae',
+                'country': 'Country',
+                'blues': 'Blues',
+                'funk': 'Funk'
+            };
+            styleElements.push(genreMap[genre] || genre);
+            
+            // 参考アーティスト・楽曲の雰囲気をプロンプトに反映
+            if (referenceArtist || referenceSong) {
+                const referencePrompt = getReferencePrompt(referenceArtist, referenceSong);
+                if (referencePrompt) {
+                    styleElements.push(referencePrompt);
+                }
+            }
+
+            // 楽器・要素の英語変換
+            if (instruments) {
+                const instrumentMap = {
+                    'アコースティックギター': 'acoustic guitar',
+                    'エレキギター': 'electric guitar',
+                    'ギター': 'guitar',
+                    'ピアノ': 'piano',
+                    'キーボード': 'keyboard',
+                    'ドラム': 'drums',
+                    'ベース': 'bass',
+                    'バイオリン': 'violin',
+                    'サックス': 'saxophone',
+                    'トランペット': 'trumpet',
+                    'オーケストラ': 'orchestral',
+                    'シンセサイザー': 'synthesizer',
+                    'コーラス': 'chorus',
+                    'ハーモニー': 'harmony',
+                    'ラップ': 'rap',
+                    'ソロ': 'solo',
+                    '編成': 'arrangement'
+                };
+
+                let englishInstruments = instruments;
+                Object.keys(instrumentMap).forEach(japanese => {
+                    const regex = new RegExp(japanese, 'g');
+                    englishInstruments = englishInstruments.replace(regex, instrumentMap[japanese]);
+                });
+
+                englishInstruments = englishInstruments.replace(/、/g, ', ');
+                styleElements.push(englishInstruments);
+            }
+            
+            // 画像分析結果の英語変換
+            if (imageAnalysis) {
+                const imageMoodMap = {
+                    'warm': 'warm, cozy',
+                    'refreshing': 'refreshing, crisp',
+                    'natural': 'natural, organic',
+                    'urban': 'urban, modern',
+                    'dynamic': 'dynamic, energetic'
+                };
+
+                const combinedImageTags = new Set();
+                imageAnalysis.mood.forEach(m => combinedImageTags.add(imageMoodMap[m] || m));
+                imageAnalysis.style.forEach(s => combinedImageTags.add(s));
+                imageAnalysis.colors.forEach(c => {
+                    if (c === 'orange') combinedImageTags.add('warm tones, orange hues');
+                    else if (c === 'blue') combinedImageTags.add('cool tones, blue atmosphere');
+                    else if (c === 'dark') combinedImageTags.add('dark atmosphere, deep tones');
+                    else if (c === 'warm') combinedImageTags.add('warm colors, golden tones');
+                    else combinedImageTags.add(c);
+                });
+                
+                if (combinedImageTags.size > 0) {
+                    styleElements.push(Array.from(combinedImageTags).join(', '));
+                }
+            }
+
+            // SUNO固有のタグを追加
+            styleElements.push('Japanese vocals, clear vocals, professional production, studio quality');
+
+            return styleElements.join(', ');
+        }
+
+        // 参考アーティスト・楽曲の雰囲気を言語化する関数
+        function getReferencePrompt(artist, song) {
+            artist = (artist || '').toLowerCase();
+            song = (song || '').toLowerCase();
+            
+            if (artist.includes('yonezu kenshi') || song.includes('lemon')) {
+                return 'a bittersweet, emotional, and introspective sound with a unique, slightly distorted vocal style';
+            }
+            if (artist.includes('yoasobi') || song.includes('idol')) {
+                return 'a dynamic, high-energy sound with intricate and rapid vocal melodies, a blend of pop and rock elements';
+            }
+            if (artist.includes('radwimps') || song.includes('zenzenzense')) {
+                return 'an emotional and dramatic rock sound with a sense of urgency, featuring dynamic shifts and powerful vocals';
+            }
+            if (artist.includes('king gnu') || song.includes('hakujitsu')) {
+                return 'a soulful and groovy sound with a mixture of soft and powerful vocals, often with jazz and funk elements';
+            }
+            if (artist.includes('official hige dandism') || song.includes('pretender')) {
+                return 'a sophisticated and emotional pop sound with a lush arrangement and a soulful, high-pitched male vocal';
+            }
+            // Add more artists as needed
+            return '';
+        }
+
+        // 結果表示
+        function displayResults(lyrics, styleTag) {
+            document.getElementById('lyrics-kanji').textContent = lyrics.kanji;
+            document.getElementById('lyrics-hiragana').textContent = lyrics.hiragana;
+            document.getElementById('style-tags').textContent = styleTag;
+            
+            const referenceArtist = document.getElementById('reference-artist').value;
+            const referenceSong = document.getElementById('reference-song').value;
+            let referenceInfo = '';
+            if (referenceArtist || referenceSong) {
+                referenceInfo = `参考: ${referenceArtist} - ${referenceSong}`;
+            }
+            
+            const info = `生成AI: ${selectedAI.toUpperCase()}
+楽曲時間: ${document.getElementById('duration').value}分
+雰囲気: なし (自動生成)
+アップロード画像: ${uploadedImages.length}枚
+${uploadedImages.length > 0 ? '画像分析: 適用済み' : ''}
+${referenceInfo}
+生成日時: ${new Date().toLocaleString('ja-JP')}`;
+            
+            document.getElementById('generation-info').textContent = info;
+            document.getElementById('results').style.display = 'grid';
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('クリップボードにコピーしました！');
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('クリップボードにコピーしました！');
+            }
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('改良版SUNO歌詞・スタイル生成ツールが初期化されました');
+        });
+    </script>
+</body>
+</html>
